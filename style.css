@@ -1,5 +1,5 @@
 /* ============================================================
-   1. ESTILOS ORIGINAIS DO SITE (NÃO ALTERAR)
+   1. ESTILOS ORIGINAIS DO SITE (MANTIDOS)
    ============================================================ */
 :root {
     --primary: #007bff;
@@ -47,8 +47,16 @@ input, button {
     font-size: 16px; 
 }
 
-input[type="date"], input[type="text"], input[type="number"], input[type="password"], input[type="email"] {
-    min-height: 48px;
+/* CORREÇÃO DO CAMPO DE VALIDADE NO APP */
+input[type="date"]::before {
+    content: attr(placeholder);
+    width: 100%;
+    color: #999;
+}
+
+input[type="date"]:focus::before,
+input[type="date"]:valid::before {
+    display: none;
 }
 
 .btn-primary { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
@@ -58,44 +66,26 @@ input[type="date"], input[type="text"], input[type="number"], input[type="passwo
 .btn-stop-cam { background: var(--danger); color: white; border: none; font-weight: bold; display: none; margin-bottom: 10px; }
 
 .item { 
-    background: #fff; 
-    border-left: 6px solid var(--success); 
-    padding: 12px; 
-    margin-bottom: 10px; 
-    border-radius: 10px; 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
+    background: #fff; border-left: 6px solid var(--success); padding: 12px; margin-bottom: 10px; 
+    border-radius: 10px; display: flex; justify-content: space-between; align-items: center; 
     box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
 }
 
 .user-info { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    background: #f1f5f9; 
-    padding: 8px 12px; 
-    border-radius: 8px; 
-    margin-bottom: 15px; 
-    font-size: 13px; 
-    font-weight: bold; 
+    display: flex; justify-content: space-between; align-items: center; background: #f1f5f9; 
+    padding: 8px 12px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; font-weight: bold; 
 }
 
 #reader { 
-    width: 100% !important; 
-    max-height: 250px; 
-    margin: 0 auto 15px auto; 
-    border-radius: 12px; 
-    overflow: hidden; 
-    display: none; 
-    border: 3px solid var(--primary); 
+    width: 100% !important; max-height: 250px; margin: 0 auto 15px auto; 
+    border-radius: 12px; overflow: hidden; display: none; border: 3px solid var(--primary); 
 }
 
 /* ============================================================
    2. ESTILO EXCLUSIVO DA TELA DE LOGIN (BRANCA)
    ============================================================ */
 
-/* Altera o fundo para branco APENAS quando o auth-section não estiver oculto */
+/* Fundo branco e centralização apenas no login */
 body:has(#auth-section:not(.hidden)) {
     background-color: #ffffff !important;
     display: flex;
@@ -104,36 +94,34 @@ body:has(#auth-section:not(.hidden)) {
     min-height: 100vh;
 }
 
-/* Remove sombras e bordas do container APENAS na tela de login */
+/* Remove sombras do container apenas no login */
 body:has(#auth-section:not(.hidden)) .container {
     background: transparent !important;
     box-shadow: none !important;
     border: none !important;
-    width: 100%;
 }
 
-/* Ajusta o logo para a tela de login branca */
-body:has(#auth-section:not(.hidden)) h2 img {
-    height: 120px;
-    filter: none; /* Mantém as cores originais do logo */
+/* Remove a barra azulada do preenchimento automático (Gmail) */
+#auth-section input:-webkit-autofill,
+#auth-section input:-webkit-autofill:hover, 
+#auth-section input:-webkit-autofill:focus {
+    -webkit-text-fill-color: #333 !important;
+    -webkit-box-shadow: 0 0 0px 1000px white inset !important;
+    transition: background-color 5000s ease-in-out 0s;
 }
 
-/* Estiliza os inputs de login com borda inferior preta/cinza */
+/* Inputs da tela de login */
 #auth-section input {
     background: transparent !important;
     border: none !important;
     border-bottom: 1px solid #333 !important;
     border-radius: 0 !important;
     color: #333 !important;
-    margin: 15px 0 !important;
     padding-left: 35px !important;
+    margin-bottom: 20px !important;
 }
 
-#auth-section input::placeholder {
-    color: #777 !important;
-}
-
-/* Ícones dos inputs em preto para fundo branco */
+/* Ícones pretos para o fundo branco */
 #auth-section #email {
     background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="black" viewBox="0 0 16 16"><path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4Zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1H2Z"/></svg>') no-repeat left center !important;
 }
@@ -142,21 +130,16 @@ body:has(#auth-section:not(.hidden)) h2 img {
     background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="black" viewBox="0 0 16 16"><path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/></svg>') no-repeat left center !important;
 }
 
-/* Botão ENTRAR escuro como na imagem de referência */
+/* Botão Entrar */
 #auth-section #btn-login {
     background-color: #333 !important;
     color: white !important;
-    border: none !important;
     border-radius: 8px !important;
-    padding: 14px !important;
-    font-weight: bold !important;
-    margin-top: 25px !important;
     text-transform: uppercase;
+    font-weight: bold !important;
+    margin-top: 20px !important;
 }
 
-/* Texto de alternar cadastro em preto para fundo branco */
 #auth-section #btn-toggle-reg {
     color: #333 !important;
-    margin-top: 15px !important;
-    font-weight: 500 !important;
 }
