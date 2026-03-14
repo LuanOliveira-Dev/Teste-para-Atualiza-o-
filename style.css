@@ -6,6 +6,7 @@
     --dark: #2c3e50;
     --excel: #1d6f42;
     --cloud: #6366f1;
+    --input-border: #333;
 }
 
 body { 
@@ -23,13 +24,78 @@ body {
     padding: 0 20px 20px 20px; 
     border-radius: 16px; 
     box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
+    min-height: 90vh;
+    display: flex;
+    flex-direction: column;
 }
 
-.auth-box { padding: 10px; text-align: center; }
-.hidden { display: none !important; }
+/* --- ESTILO LOGIN (BASEADO NA IMAGEM) --- */
+.auth-box { 
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex-grow: 1;
+    padding: 20px; 
+    text-align: center; 
+}
 
-h2 { display: flex; justify-content: center; align-items: center; margin: 0; padding: 10px 0; }
-h2 img { height: 90px; width: auto; max-width: 100%; object-fit: contain; }
+.auth-box h2 img { 
+    height: 100px; 
+    margin-bottom: 40px; 
+}
+
+.auth-box input {
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 1px solid var(--input-border) !important;
+    border-radius: 0 !important;
+    margin-bottom: 25px !important;
+    padding: 10px 5px !important;
+    font-size: 16px;
+    color: #333;
+}
+
+.auth-box input::placeholder {
+    color: #333;
+    font-weight: 500;
+}
+
+#btn-login { 
+    background: #333; /* Cor escura do botão da imagem */
+    color: white; 
+    border: none; 
+    border-radius: 8px;
+    padding: 16px;
+    font-weight: bold; 
+    cursor: pointer; 
+    margin-top: 10px;
+    font-size: 16px;
+}
+
+.auth-footer {
+    margin-top: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.link-secundario {
+    color: #333;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+#btn-toggle-reg {
+    background: none;
+    border: none;
+    color: #333;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* --- RESTANTE DO APP --- */
+.hidden { display: none !important; }
 
 .db-section { background: #fdfdfd; border: 2px solid #e2e8f0; padding: 15px; border-radius: 12px; margin-bottom: 15px; }
 .cloud-badge { background: var(--cloud); color: white; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; }
@@ -44,19 +110,10 @@ input, button {
     font-size: 16px; 
 }
 
-input[type="date"], input[type="text"], input[type="number"], input[type="password"], input[type="email"] {
-    min-height: 48px;
-}
-
-input[type="date"]::before {
-    content: attr(placeholder);
-    width: 100%;
-    color: #999;
-}
-
-input[type="date"]:focus::before,
-input[type="date"]:valid::before {
-    display: none;
+/* Estilos para o formulário interno do app permanecem arredondados */
+#formEstoque input {
+    border: 1px solid #ddd;
+    border-radius: 10px;
 }
 
 .btn-primary { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
@@ -97,9 +154,4 @@ input[type="date"]:valid::before {
     overflow: hidden; 
     display: none; 
     border: 3px solid var(--primary); 
-}
-
-#reader video {
-    object-fit: cover !important;
-    height: 250px !important;
 }

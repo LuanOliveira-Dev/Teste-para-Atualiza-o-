@@ -15,16 +15,23 @@
 <body>
 
 <div class="container">
-    <h2><img src="logo512x512.png" alt="Logo Web Validade"></h2>
-
     <div id="auth-section" class="auth-box">
+        <h2><img src="logo512x512.png" alt="Logo Web Validade"></h2>
+
         <div id="register-fields" class="hidden">
-            <input type="text" id="nome_usuario" placeholder="Nome de Usuário">
+            <input type="text" id="nome_usuario" placeholder="👤 Nome de Usuário">
         </div>
-        <input type="email" id="email" placeholder="E-mail">
-        <input type="password" id="senha" placeholder="Senha">
-        <button id="btn-login" class="btn-primary">ENTRAR</button>
-        <button id="btn-toggle-reg" style="background:none; border:none; color:var(--primary); cursor:pointer; font-size:14px;">Não tenho conta? Cadastrar</button>
+        
+        <input type="email" id="email" placeholder="✉️ E-mail">
+        <input type="password" id="senha" placeholder="🔒 Senha">
+        
+        <button id="btn-login" class="btn-primary">Entrar</button>
+        
+        <div class="auth-footer">
+            <span class="link-secundario">Recuperar senha</span>
+            <button id="btn-toggle-reg">Criar conta ➔</button>
+        </div>
+        
         <button id="btn-cadastrar" class="btn-success hidden">FINALIZAR CADASTRO</button>
     </div>
 
