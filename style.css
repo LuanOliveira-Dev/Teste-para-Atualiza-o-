@@ -24,17 +24,13 @@ body {
     padding: 0 20px 20px 20px; 
     border-radius: 16px; 
     box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
-    min-height: 90vh;
-    display: flex;
-    flex-direction: column;
 }
 
-/* --- ESTILO LOGIN (BASEADO NA IMAGEM) --- */
+/* --- ESTILO LOGIN (MANTIDO CONFORME SOLICITADO) --- */
 .auth-box { 
     display: flex;
     flex-direction: column;
     justify-content: center;
-    flex-grow: 1;
     padding: 20px; 
     text-align: center; 
 }
@@ -55,13 +51,8 @@ body {
     color: #333;
 }
 
-.auth-box input::placeholder {
-    color: #333;
-    font-weight: 500;
-}
-
 #btn-login { 
-    background: #333; /* Cor escura do botão da imagem */
+    background: #333; 
     color: white; 
     border: none; 
     border-radius: 8px;
@@ -77,21 +68,23 @@ body {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    text-align: center;
 }
 
-.link-secundario {
-    color: #333;
-    font-size: 14px;
-    cursor: pointer;
+/* --- RESTAURANDO O LEITOR DE CÓDIGO DE BARRAS ORIGINAL --- */
+#reader { 
+    width: 100% !important; 
+    max-height: 250px; 
+    margin: 0 auto 15px auto; 
+    border-radius: 12px; 
+    overflow: hidden; 
+    display: none; 
+    border: 3px solid var(--primary); 
 }
 
-#btn-toggle-reg {
-    background: none;
-    border: none;
-    color: #333;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
+#reader video {
+    object-fit: cover !important;
+    height: 250px !important;
 }
 
 /* --- RESTANTE DO APP --- */
@@ -110,7 +103,7 @@ input, button {
     font-size: 16px; 
 }
 
-/* Estilos para o formulário interno do app permanecem arredondados */
+/* Inputs do formulário de estoque permanecem com borda padrão */
 #formEstoque input {
     border: 1px solid #ddd;
     border-radius: 10px;
@@ -144,14 +137,4 @@ input, button {
     margin-bottom: 15px; 
     font-size: 13px; 
     font-weight: bold; 
-}
-
-#reader { 
-    width: 100% !important; 
-    max-height: 250px; 
-    margin: 0 auto 15px auto; 
-    border-radius: 12px; 
-    overflow: hidden; 
-    display: none; 
-    border: 3px solid var(--primary); 
 }
