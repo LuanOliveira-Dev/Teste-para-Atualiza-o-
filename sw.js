@@ -1,4 +1,4 @@
-const CACHE_NAME = 'web-validade-v9'; // Incrementado para v9 para forçar atualização
+const CACHE_NAME = 'web-validade-v10'; // Incrementado para v10 para forçar atualização
 const urlsToCache = [
   './',
   './index.html',
