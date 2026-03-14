@@ -21,7 +21,7 @@ const formatarDataBR = (dataStr) => {
     return `${dia}/${mes}/${ano}`;
 };
 
-// --- FUNÇÕES DE LÓGICA ---
+// --- FUNÇÕES DE LÓGICA DO BANCO ---
 async function atualizarStatusContagemCloud() {
     try {
         const snapshot = await getDocs(collection(db, "produtos_base"));
@@ -34,183 +34,111 @@ async function buscarProdutoNoFirebase(ean) {
     const q = query(collection(db, "produtos_base"), where("__name__", "==", ean));
     const snap = await getDocs(q);
     if (!snap.empty) {
-        document.getElementById('descricao').value = snap.docs[0].data().nome;
-        document.getElementById('validade').focus();
+        const data = snap.docs[0].data();
+        document.getElementById('descricao').value = data.nome || "";
     }
 }
 
-const pararLeitor = () => {
-    if (html5QrCode && html5QrCode.isScanning) {
-        html5QrCode.stop().then(() => {
-            document.getElementById('reader').style.display = 'none';
-            document.getElementById('btnScan').style.display = 'block';
-            document.getElementById('btnStopCam').style.display = 'none';
-        }).catch(err => console.error(err));
+// --- AUTENTICAÇÃO E CONTROLE DE TELAS ---
+onAuthStateChanged(auth, (user) => {
+    const authSection = document.getElementById('auth-section');
+    const appSection = document.getElementById('app-section');
+    const userHeader = document.getElementById('user-header');
+    const userNameDisplay = document.getElementById('display-user-name');
+
+    if (user) {
+        authSection.classList.add('hidden');
+        appSection.classList.remove('hidden');
+        if(userHeader) userHeader.classList.remove('hidden');
+        if(userNameDisplay) userNameDisplay.innerText = user.displayName || user.email;
+        carregarEstoque(user.uid);
+        atualizarStatusContagemCloud();
+    } else {
+        authSection.classList.remove('hidden');
+        appSection.classList.add('hidden');
+        if(userHeader) userHeader.classList.add('hidden');
     }
-};
-
-// --- ATRIBUIÇÃO DE EVENTOS (A correção principal) ---
-document.addEventListener('DOMContentLoaded', () => {
-
-    // Login
-    document.getElementById('btn-login').addEventListener('click', () => {
-        const email = document.getElementById('email').value;
-        const senha = document.getElementById('senha').value;
-        signInWithEmailAndPassword(auth, email, senha)
-            .catch(() => Swal.fire('Erro', "E-mail ou senha incorretos.", 'error'));
-    });
-
-    // Cadastro
-    document.getElementById('btn-cadastrar').addEventListener('click', () => {
-        const nome = document.getElementById('nome_usuario').value;
-        const email = document.getElementById('email').value;
-        const senha = document.getElementById('senha').value;
-        createUserWithEmailAndPassword(auth, email, senha)
-            .then(res => updateProfile(res.user, { displayName: nome }))
-            .then(() => location.reload())
-            .catch(err => Swal.fire('Erro no Cadastro', err.message, 'error'));
-    });
-
-    // Alternar campos de cadastro
-    document.getElementById('btn-toggle-reg').addEventListener('click', () => {
-        document.getElementById('register-fields').classList.toggle('hidden');
-        document.getElementById('btn-cadastrar').classList.toggle('hidden');
-        document.getElementById('btn-login').classList.toggle('hidden');
-        const isReg = !document.getElementById('register-fields').classList.contains('hidden');
-        document.getElementById('btn-toggle-reg').innerText = isReg ? "Já tenho conta? Entrar" : "Não tenho conta? Cadastrar";
-    });
-
-    // Logout
-    document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
-
-    // Scanner
-    document.getElementById('btnScan').addEventListener('click', () => {
-        document.getElementById('reader').style.display = 'block';
-        document.getElementById('btnScan').style.display = 'none';
-        document.getElementById('btnStopCam').style.display = 'block';
-        
-        html5QrCode = new Html5Qrcode("reader");
-        html5QrCode.start(
-            { facingMode: "environment" }, 
-            { fps: 15, qrbox: { width: 250, height: 120 } }, 
-            (text) => {
-                document.getElementById('codigo').value = text;
-                buscarProdutoNoFirebase(text);
-                pararLeitor();
-            }
-        ).catch(err => console.error(err));
-    });
-
-    document.getElementById('btnStopCam').addEventListener('click', pararLeitor);
-
-    // Busca manual por código
-    document.getElementById('codigo').addEventListener('input', (e) => {
-        if(e.target.value.length >= 8) buscarProdutoNoFirebase(e.target.value);
-    });
-
-    // Importar CSV
-    document.getElementById('csvFile').addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        Swal.fire({ title: 'Sincronizando...', text: 'Aguarde', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-        
-        const reader = new FileReader();
-        reader.onload = async (event) => {
-            const lines = event.target.result.split(/\r?\n/);
-            const batch = writeBatch(db);
-            let cont = 0;
-            lines.forEach(line => {
-                const cols = line.split(/[;,]/);
-                if (cols.length >= 2) {
-                    const ean = cols[0].trim().replace(/"/g, '');
-                    const nome = cols[1].trim().replace(/"/g, '');
-                    if (ean && ean.toLowerCase() !== "ean") {
-                        batch.set(doc(db, "produtos_base", ean), { nome: nome });
-                        cont++;
-                    }
-                }
-            });
-            await batch.commit();
-            await atualizarStatusContagemCloud();
-            Swal.fire('Sucesso', `${cont} produtos sincronizados!`, 'success');
-        };
-        reader.readAsText(file, 'UTF-8');
-    });
-
-    // Salvar no Estoque
-    document.getElementById('formEstoque').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        await addDoc(collection(db, "estoque"), {
-            uid: auth.currentUser.uid,
-            codigo: document.getElementById('codigo').value,
-            descricao: document.getElementById('descricao').value,
-            validade: document.getElementById('validade').value,
-            quantidade: document.getElementById('quantidade').value,
-            criadoEm: Date.now()
-        });
-        e.target.reset();
-        document.getElementById('codigo').focus();
-    });
-
-    // Exportar
-    document.getElementById('btnExportar').addEventListener('click', () => {
-        if (listaAtualParaExportar.length === 0) return Swal.fire('Vazio', 'Nada para exportar!', 'info');
-        
-        Swal.fire({
-            title: 'Exportar para Excel?',
-            text: `Deseja gerar o arquivo com ${listaAtualParaExportar.length} itens coletados?`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#1d6f42',
-            confirmButtonText: 'Sim, exportar!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                const ws = XLSX.utils.json_to_sheet(listaAtualParaExportar.map(item => ({
-                    "Código": item.codigo, "Descrição": item.descricao, "Validade": formatarDataBR(item.validade), "Quantidade": item.quantidade
-                })));
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "Coleta");
-                XLSX.writeFile(wb, `Coleta_${new Date().toLocaleDateString().replace(/\//g, '-')}.xlsx`);
-            }
-        });
-    });
-
-    // Limpar Tudo
-    document.getElementById('btnLimparTudo').addEventListener('click', async () => {
-        const result = await Swal.fire({ 
-            title: 'Limpar tudo?', 
-            text: "Isso apagará permanentemente toda a sua lista atual!",
-            icon: 'warning', 
-            showCancelButton: true, 
-            confirmButtonColor: '#dc3545',
-            confirmButtonText: 'Sim, limpar tudo' 
-        });
-        
-        if (result.isConfirmed) {
-            const snap = await getDocs(query(collection(db, "estoque"), where("uid", "==", auth.currentUser.uid)));
-            const batch = writeBatch(db);
-            snap.forEach(d => batch.delete(doc(db, "estoque", d.id)));
-            await batch.commit();
-            Swal.fire('Limpo!', 'Sua lista foi esvaziada.', 'success');
-        }
-    });
 });
 
-// --- LISTAGEM E EXCLUSÃO (Global para o botão X) ---
-window.excluirItem = (id) => {
-    Swal.fire({
-        title: 'Excluir item?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#dc3545',
-        confirmButtonText: 'Sim, excluir'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            deleteDoc(doc(db, "estoque", id));
-        }
-    });
-};
+// --- EVENTOS DE LOGIN / CADASTRO ---
+document.getElementById('btn-login').addEventListener('click', async () => {
+    const email = document.getElementById('email').value;
+    const senha = document.getElementById('senha').value;
+    try {
+        await signInWithEmailAndPassword(auth, email, senha);
+    } catch (e) { Swal.fire('Erro', 'Falha no login: ' + e.message, 'error'); }
+});
 
+document.getElementById('btn-toggle-reg').addEventListener('click', () => {
+    document.getElementById('register-fields').classList.toggle('hidden');
+    document.getElementById('btn-login').classList.toggle('hidden');
+    document.getElementById('btn-cadastrar').classList.toggle('hidden');
+    const isRegister = !document.getElementById('register-fields').classList.contains('hidden');
+    document.getElementById('btn-toggle-reg').innerText = isRegister ? "➔ Voltar ao Login" : "Criar conta ➔";
+});
+
+document.getElementById('btn-cadastrar').addEventListener('click', async () => {
+    const email = document.getElementById('email').value;
+    const senha = document.getElementById('senha').value;
+    const nome = document.getElementById('nome_usuario').value;
+    try {
+        const res = await createUserWithEmailAndPassword(auth, email, senha);
+        await updateProfile(res.user, { displayName: nome });
+        Swal.fire('Sucesso', 'Conta criada!', 'success');
+    } catch (e) { Swal.fire('Erro', 'Falha no cadastro: ' + e.message, 'error'); }
+});
+
+document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
+
+// --- SCANNER (html5-qrcode) ---
+document.getElementById('btnScan').addEventListener('click', () => {
+    document.getElementById('reader').style.display = 'block';
+    document.getElementById('btnStopCam').style.display = 'block';
+    html5QrCode = new Html5Qrcode("reader");
+    html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 250, height: 150 } },
+        (decodedText) => {
+            document.getElementById('codigo').value = decodedText;
+            buscarProdutoNoFirebase(decodedText);
+            pararScanner();
+        }
+    ).catch(err => console.error("Erro camera:", err));
+});
+
+function pararScanner() {
+    if(html5QrCode) {
+        html5QrCode.stop().then(() => {
+            document.getElementById('reader').style.display = 'none';
+            document.getElementById('btnStopCam').style.display = 'none';
+        });
+    }
+}
+document.getElementById('btnStopCam').addEventListener('click', pararScanner);
+
+// --- SALVAR COLETA ---
+document.getElementById('formEstoque').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const user = auth.currentUser;
+    if(!user) return;
+
+    const dados = {
+        uid: user.uid,
+        codigo: document.getElementById('codigo').value,
+        descricao: document.getElementById('descricao').value,
+        validade: document.getElementById('validade').value,
+        quantidade: document.getElementById('quantidade').value,
+        timestamp: Date.now()
+    };
+
+    try {
+        await addDoc(collection(db, "estoque"), dados);
+        document.getElementById('formEstoque').reset();
+        Swal.fire({ title: 'Salvo!', icon: 'success', timer: 1000, showConfirmButton: false });
+    } catch (e) { Swal.fire('Erro', 'Erro ao salvar', 'error'); }
+});
+
+// --- CARREGAR LISTA ---
 function carregarEstoque(uid) {
     onSnapshot(query(collection(db, "estoque"), where("uid", "==", uid)), (snap) => {
         const lista = document.getElementById('listaProdutos');
@@ -223,21 +151,85 @@ function carregarEstoque(uid) {
             const div = document.createElement('div');
             div.className = 'item';
             div.innerHTML = `<div><strong>${p.descricao}</strong><br><small>${p.codigo} | Qtd: ${p.quantidade} | Val: ${formatarDataBR(p.validade)}</small></div>
-                             <button onclick="excluirItem('${d.id}')" style="width:auto; background:none; border:none; color:red; cursor:pointer">✕</button>`;
+                             <button onclick="window.excluirItem('${d.id}')" style="width:auto; background:none; border:none; color:red; cursor:pointer">✕</button>`;
             lista.appendChild(div);
         });
     });
 }
 
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        document.getElementById('auth-section').classList.add('hidden');
-        document.getElementById('app-section').classList.remove('hidden');
-        document.getElementById('display-user-name').innerText = user.displayName || user.email;
-        carregarEstoque(user.uid);
-        atualizarStatusContagemCloud();
-    } else {
-        document.getElementById('auth-section').classList.remove('hidden');
-        document.getElementById('app-section').classList.add('hidden');
+// Tornar excluir global para o onclick do HTML
+window.excluirItem = async (id) => {
+    const result = await Swal.fire({
+        title: 'Excluir item?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sim'
+    });
+    if(result.isConfirmed) deleteDoc(doc(db, "estoque", id));
+};
+
+// --- EXPORTAR EXCEL (Efeito Moderno com Spinner) ---
+document.getElementById('btnExportar').addEventListener('click', () => {
+    if (listaAtualParaExportar.length === 0) return Swal.fire('Vazio', 'Nada para exportar!', 'info');
+    
+    const btn = document.getElementById('btnExportar');
+    const spinner = document.getElementById('exportSpinner');
+    const btnText = btn.querySelector('span');
+
+    Swal.fire({
+        title: 'Exportar para Excel?',
+        text: `Deseja gerar o arquivo com ${listaAtualParaExportar.length} itens?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#1d6f42',
+        confirmButtonText: 'Sim, exportar!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Efeito Visual de Processamento
+            if(spinner) spinner.style.display = 'block';
+            if(btnText) btnText.innerText = 'Processando...';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                const ws = XLSX.utils.json_to_sheet(listaAtualParaExportar.map(item => ({
+                    "Código": item.codigo, 
+                    "Descrição": item.descricao, 
+                    "Validade": formatarDataBR(item.validade), 
+                    "Quantidade": item.quantidade
+                })));
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Coleta");
+                XLSX.writeFile(wb, `Coleta_${new Date().toLocaleDateString().replace(/\//g, '-')}.xlsx`);
+                
+                // Resetar o botão para o estado original
+                if(spinner) spinner.style.display = 'none';
+                if(btnText) btnText.innerText = '📊 EXPORTAR PARA EXCEL (.XLSX)';
+                btn.disabled = false;
+                Swal.fire('Sucesso', 'Arquivo gerado com sucesso!', 'success');
+            }, 1200); 
+        }
+    });
+});
+
+// --- LIMPAR TUDO ---
+document.getElementById('btnLimparTudo').addEventListener('click', async () => {
+    const result = await Swal.fire({
+        title: 'Limpar lista inteira?',
+        text: "Essa ação não pode ser desfeita!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        confirmButtonText: 'Sim, limpar tudo'
+    });
+
+    if (result.isConfirmed) {
+        const user = auth.currentUser;
+        if (!user) return;
+        const q = query(collection(db, "estoque"), where("uid", "==", user.uid));
+        const snap = await getDocs(q);
+        const batch = writeBatch(db);
+        snap.forEach(d => batch.delete(d.ref));
+        await batch.commit();
+        Swal.fire('Limpo!', 'Sua lista foi apagada.', 'success');
     }
 });

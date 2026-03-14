@@ -15,6 +15,11 @@
 <body>
 
 <div class="container">
+    <div id="user-header" class="user-info hidden">
+        <span>👋 Olá, <span id="display-user-name"></span></span>
+        <button id="btn-logout" style="width:auto; padding: 4px 8px; font-size: 11px;">Sair</button>
+    </div>
+
     <div id="auth-section" class="auth-box">
         <h2><img src="logo512x512.png" alt="Logo Web Validade"></h2>
 
@@ -36,11 +41,6 @@
     </div>
 
     <div id="app-section" class="hidden">
-        <div class="user-info">
-            <span>👋 Olá, <span id="display-user-name"></span></span>
-            <button id="btn-logout" style="width:auto; padding: 4px 8px; font-size: 11px;">Sair</button>
-        </div>
-
         <div class="db-section">
             <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                 <span style="font-weight: bold; font-size: 13px;">☁️ Banco de Dados</span>
@@ -63,13 +63,17 @@
             <input type="text" id="codigo" placeholder="Código de Barras" required>
             <input type="text" id="descricao" placeholder="Nome do Produto" required>
             <div style="display: flex; gap: 10px;">
-                <input type="date" id="validade" placeholder="Data de Validade" style="flex:1.5" required>
+                <input type="date" id="validade" required style="flex:1.5">
                 <input type="number" id="quantidade" placeholder="Qtd" style="flex:1" required>
             </div>
             <button type="submit" class="btn-success">SALVAR COLETA</button>
         </form>
 
-        <button id="btnExportar" class="btn-excel">📊 EXPORTAR PARA EXCEL (.XLSX)</button>
+        <button id="btnExportar" class="btn-excel">
+            <div class="spinner" id="exportSpinner"></div>
+            <span>📊 EXPORTAR PARA EXCEL (.XLSX)</span>
+        </button>
+
         <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
         
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
