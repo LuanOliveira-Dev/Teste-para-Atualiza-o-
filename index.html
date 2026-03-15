@@ -12,7 +12,7 @@
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
-<body>
+<body class="has-nav">
 
 <div class="container">
     <h2><img src="logo512x512.png" alt="Logo Web Validade"></h2>
@@ -72,6 +72,32 @@
         <div id="listaProdutos">Carregando...</div>
     </div>
 </div>
+
+<nav class="bottom-nav">
+    <a href="#" class="nav-item active">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-label">Início</span>
+    </a>
+    <a href="#" class="nav-item">
+        <span class="nav-icon">📂</span>
+        <span class="nav-label">Departamentos</span>
+    </a>
+    <a href="#" class="nav-item">
+        <span class="nav-icon">❤️</span>
+        <span class="nav-label">Favoritos</span>
+    </a>
+    <a href="#" class="nav-item">
+        <span class="nav-icon">🛍️</span>
+        <span class="nav-label">Sacola</span>
+    </a>
+    <a href="#" class="nav-item">
+        <div class="profile-wrapper">
+            <span class="nav-icon">👤</span>
+            <span class="badge">7</span>
+        </div>
+        <span class="nav-label">Sua conta</span>
+    </a>
+</nav>
 
 <script type="module" src="script.js"></script>
 </body>
