@@ -114,6 +114,9 @@ input[type="date"]:focus::before, input[type="date"]:valid::before { display: no
 .nav-icon {
     font-size: 22px;
     margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .profile-wrapper {
