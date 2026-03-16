@@ -14,63 +14,14 @@ import {
 let html5QrCode;
 let listaAtualParaExportar = [];
 
-// ============================================================
-// 1. GERENCIAMENTO DE SETORES (LÓGICA MANUAL)
-// ============================================================
-let setores = JSON.parse(localStorage.getItem('web_validade_setores')) || [];
-
-function salvarSetores() {
-    localStorage.setItem('web_validade_setores', JSON.stringify(setores));
-    renderizarSetores();
-}
-
-function renderizarSetores() {
-    const lista = document.getElementById('lista-setores-render');
-    if(!lista) return;
-    
-    lista.innerHTML = '';
-    if (setores.length === 0) {
-        lista.innerHTML = '<p style="text-align:center; padding:20px; color:#999;">Nenhum setor cadastrado.</p>';
-        return;
-    }
-
-    setores.forEach((setor, index) => {
-        const div = document.createElement('div');
-        div.className = 'setor-card';
-        div.innerHTML = `
-            <span>${setor}</span>
-            <button onclick="excluirSetor(${index})" style="background:none; border:none; cursor:pointer; font-size:18px;">🗑️</button>
-        `;
-        lista.appendChild(div);
-    });
-}
-
-// Função global para o botão de excluir setor
-window.excluirSetor = (index) => {
-    Swal.fire({
-        title: 'Excluir setor?',
-        text: `Deseja remover o setor "${setores[index]}"?`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#dc3545',
-        confirmButtonText: 'Sim, excluir'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            setores.splice(index, 1);
-            salvarSetores();
-        }
-    });
-};
-
-// ============================================================
-// 2. UTILITÁRIOS E SCANNER
-// ============================================================
+// --- UTILITÁRIOS ---
 const formatarDataBR = (dataStr) => {
     if(!dataStr) return "";
     const [ano, mes, dia] = dataStr.split("-");
     return `${dia}/${mes}/${ano}`;
 };
 
+// --- FUNÇÕES DE LÓGICA ---
 async function atualizarStatusContagemCloud() {
     try {
         const snapshot = await getDocs(collection(db, "produtos_base"));
@@ -98,74 +49,10 @@ const pararLeitor = () => {
     }
 };
 
-// ============================================================
-// 3. ATRIBUIÇÃO DE EVENTOS PRINCIPAIS
-// ============================================================
+// --- ATRIBUIÇÃO DE EVENTOS (A correção principal) ---
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- Navegação entre Abas (Tab Bar) ---
-    const navInicio = document.getElementById('nav-link-inicio');
-    const navSetores = document.getElementById('nav-link-setores');
-    const tabInicio = document.getElementById('tab-inicio');
-    const tabSetores = document.getElementById('tab-setores');
-
-    const alternarAba = (aba) => {
-        tabInicio.classList.add('hidden');
-        tabSetores.classList.add('hidden');
-        navInicio.classList.remove('active');
-        navSetores.classList.remove('active');
-
-        if (aba === 'inicio') {
-            tabInicio.classList.remove('hidden');
-            navInicio.classList.add('active');
-        } else {
-            tabSetores.classList.remove('hidden');
-            navSetores.classList.add('active');
-            renderizarSetores();
-        }
-    };
-
-    navInicio.onclick = (e) => { e.preventDefault(); alternarAba('inicio'); };
-    navSetores.onclick = (e) => { e.preventDefault(); alternarAba('setores'); };
-    document.getElementById('btn-back-home').onclick = () => alternarAba('inicio');
-
-    // --- Lógica da Modal de Setores ---
-    const modalSetor = document.getElementById('modal-setor');
-    const inputNomeSetor = document.getElementById('input-nome-setor');
-
-    document.getElementById('btn-open-modal-setor').onclick = () => modalSetor.classList.remove('hidden');
-    document.getElementById('btn-close-modal').onclick = () => {
-        modalSetor.classList.add('hidden');
-        inputNomeSetor.value = '';
-    };
-
-    document.getElementById('btn-confirm-setor').onclick = () => {
-        const nome = inputNomeSetor.value.trim();
-        if (nome) {
-            setores.push(nome);
-            salvarSetores();
-            inputNomeSetor.value = '';
-            modalSetor.classList.add('hidden');
-        }
-    };
-
-    document.getElementById('btn-clear-all-setores').onclick = () => {
-        if (setores.length === 0) return;
-        Swal.fire({
-            title: 'Limpar tudo?',
-            text: "Apagar todos os setores?",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Sim, apagar'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                setores = [];
-                salvarSetores();
-            }
-        });
-    };
-
-    // --- Funções Originais (Login, Cadastro, Firebase) ---
+    // Login
     document.getElementById('btn-login').addEventListener('click', () => {
         const email = document.getElementById('email').value;
         const senha = document.getElementById('senha').value;
@@ -173,6 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(() => Swal.fire('Erro', "E-mail ou senha incorretos.", 'error'));
     });
 
+    // Cadastro
     document.getElementById('btn-cadastrar').addEventListener('click', () => {
         const nome = document.getElementById('nome_usuario').value;
         const email = document.getElementById('email').value;
@@ -183,6 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(err => Swal.fire('Erro no Cadastro', err.message, 'error'));
     });
 
+    // Alternar campos de cadastro
     document.getElementById('btn-toggle-reg').addEventListener('click', () => {
         document.getElementById('register-fields').classList.toggle('hidden');
         document.getElementById('btn-cadastrar').classList.toggle('hidden');
@@ -191,8 +80,10 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('btn-toggle-reg').innerText = isReg ? "Já tenho conta? Entrar" : "Não tenho conta? Cadastrar";
     });
 
+    // Logout
     document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
 
+    // Scanner
     document.getElementById('btnScan').addEventListener('click', () => {
         document.getElementById('reader').style.display = 'block';
         document.getElementById('btnScan').style.display = 'none';
@@ -212,6 +103,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('btnStopCam').addEventListener('click', pararLeitor);
 
+    // Busca manual por código
+    document.getElementById('codigo').addEventListener('input', (e) => {
+        if(e.target.value.length >= 8) buscarProdutoNoFirebase(e.target.value);
+    });
+
+    // Importar CSV
+    document.getElementById('csvFile').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        Swal.fire({ title: 'Sincronizando...', text: 'Aguarde', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+            const lines = event.target.result.split(/\r?\n/);
+            const batch = writeBatch(db);
+            let cont = 0;
+            lines.forEach(line => {
+                const cols = line.split(/[;,]/);
+                if (cols.length >= 2) {
+                    const ean = cols[0].trim().replace(/"/g, '');
+                    const nome = cols[1].trim().replace(/"/g, '');
+                    if (ean && ean.toLowerCase() !== "ean") {
+                        batch.set(doc(db, "produtos_base", ean), { nome: nome });
+                        cont++;
+                    }
+                }
+            });
+            await batch.commit();
+            await atualizarStatusContagemCloud();
+            Swal.fire('Sucesso', `${cont} produtos sincronizados!`, 'success');
+        };
+        reader.readAsText(file, 'UTF-8');
+    });
+
+    // Salvar no Estoque
     document.getElementById('formEstoque').addEventListener('submit', async (e) => {
         e.preventDefault();
         await addDoc(collection(db, "estoque"), {
@@ -226,18 +152,68 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('codigo').focus();
     });
 
-    // (Mantenha aqui as demais funções de exportar, limpar tudo e importar CSV do seu código original)
+    // Exportar
+    document.getElementById('btnExportar').addEventListener('click', () => {
+        if (listaAtualParaExportar.length === 0) return Swal.fire('Vazio', 'Nada para exportar!', 'info');
+        
+        Swal.fire({
+            title: 'Exportar para Excel?',
+            text: `Deseja gerar o arquivo com ${listaAtualParaExportar.length} itens coletados?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#1d6f42',
+            confirmButtonText: 'Sim, exportar!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const ws = XLSX.utils.json_to_sheet(listaAtualParaExportar.map(item => ({
+                    "Código": item.codigo, "Descrição": item.descricao, "Validade": formatarDataBR(item.validade), "Quantidade": item.quantidade
+                })));
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Coleta");
+                XLSX.writeFile(wb, `Coleta_${new Date().toLocaleDateString().replace(/\//g, '-')}.xlsx`);
+            }
+        });
+    });
+
+    // Limpar Tudo
+    document.getElementById('btnLimparTudo').addEventListener('click', async () => {
+        const result = await Swal.fire({ 
+            title: 'Limpar tudo?', 
+            text: "Isso apagará permanentemente toda a sua lista atual!",
+            icon: 'warning', 
+            showCancelButton: true, 
+            confirmButtonColor: '#dc3545',
+            confirmButtonText: 'Sim, limpar tudo' 
+        });
+        
+        if (result.isConfirmed) {
+            const snap = await getDocs(query(collection(db, "estoque"), where("uid", "==", auth.currentUser.uid)));
+            const batch = writeBatch(db);
+            snap.forEach(d => batch.delete(doc(db, "estoque", d.id)));
+            await batch.commit();
+            Swal.fire('Limpo!', 'Sua lista foi esvaziada.', 'success');
+        }
+    });
 });
 
-// --- LISTAGEM E EXCLUSÃO FIREBASE ---
+// --- LISTAGEM E EXCLUSÃO (Global para o botão X) ---
 window.excluirItem = (id) => {
-    deleteDoc(doc(db, "estoque", id));
+    Swal.fire({
+        title: 'Excluir item?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        confirmButtonText: 'Sim, excluir'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            deleteDoc(doc(db, "estoque", id));
+        }
+    });
 };
 
 function carregarEstoque(uid) {
     onSnapshot(query(collection(db, "estoque"), where("uid", "==", uid)), (snap) => {
         const lista = document.getElementById('listaProdutos');
-        if(!lista) return;
         document.getElementById('countItens').innerText = snap.size;
         lista.innerHTML = '';
         listaAtualParaExportar = [];

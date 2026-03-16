@@ -1,52 +1,188 @@
+/* ============================================================
+   1. ESTILOS ORIGINAIS (MANTIDOS)
+   ============================================================ */
 :root {
     --primary: #007bff;
     --success: #28a745;
     --danger: #dc3545;
+    --warning: #ffc107;
+    --dark: #2c3e50;
     --excel: #1d6f42;
     --cloud: #6366f1;
+    --nav-bg: #ffffff;
+    --nav-text: #757575;
 }
 
-body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f2f5; padding: 15px; margin: 0; color: #333; }
-body.has-nav { padding-bottom: 80px; }
+body { 
+    font-family: 'Segoe UI', system-ui, sans-serif; 
+    background: #f0f2f5; 
+    padding: 15px; 
+    margin: 0; 
+    color: #333; 
+}
 
-.container { max-width: 500px; margin: 5px auto; background: white; padding: 20px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+/* Espaço extra no final para a barra não cobrir o conteúdo */
+body.has-nav {
+    padding-bottom: 80px;
+}
+
+.container { 
+    max-width: 500px; 
+    margin: 5px auto auto; 
+    background: white; 
+    padding: 0 20px 20px 20px; 
+    border-radius: 16px; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
+}
+
+.auth-box { padding: 10px; text-align: center; }
 .hidden { display: none !important; }
 
-/* BARRA PRETA SETORES */
-.top-bar-black {
-    background: #000; color: #fff; display: flex; justify-content: space-between;
-    align-items: center; padding: 15px; margin: -20px -20px 20px -20px;
-    border-radius: 16px 16px 0 0;
+h2 { display: flex; justify-content: center; align-items: center; margin: 0; padding: 10px 0; }
+h2 img { height: 90px; width: auto; max-width: 100%; object-fit: contain; }
+
+.db-section { background: #fdfdfd; border: 2px solid #e2e8f0; padding: 15px; border-radius: 12px; margin-bottom: 15px; }
+.cloud-badge { background: var(--cloud); color: white; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; }
+
+input, button { 
+    width: 100%; 
+    padding: 12px; 
+    margin: 6px 0; 
+    border: 1px solid #ddd; 
+    border-radius: 10px; 
+    box-sizing: border-box; 
+    font-size: 16px; 
 }
-.btn-icon-top { background: none; border: none; color: white; font-size: 20px; cursor: pointer; padding: 5px; }
 
-/* MODAL */
-.modal {
-    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    background: rgba(0,0,0,0.8); display: flex; align-items: center;
-    justify-content: center; z-index: 9999;
+input[type="date"]::before { content: attr(placeholder); width: 100%; color: #999; }
+input[type="date"]:focus::before, input[type="date"]:valid::before { display: none; }
+
+.btn-primary { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
+.btn-success { background: var(--success); color: white; border: none; font-weight: bold; cursor: pointer; }
+.btn-excel { background: var(--excel); color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
+.btn-danger { background: #fee2e2; color: var(--danger); border: 1px solid var(--danger); font-weight: bold; cursor: pointer; }
+.btn-stop-cam { background: var(--danger); color: white; border: none; font-weight: bold; display: none; margin-bottom: 10px; }
+
+.item { 
+    background: #fff; border-left: 6px solid var(--success); padding: 12px; margin-bottom: 10px; 
+    border-radius: 10px; display: flex; justify-content: space-between; align-items: center; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
 }
-.modal-content { background: white; padding: 25px; border-radius: 15px; width: 85%; max-width: 350px; text-align: center; }
-.modal-buttons { display: flex; gap: 10px; margin-top: 15px; }
 
-/* LISTA DE SETORES */
-.setor-card { background: #fff; border-bottom: 1px solid #eee; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+.user-info { 
+    display: flex; justify-content: space-between; align-items: center; background: #f1f5f9; 
+    padding: 8px 12px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; font-weight: bold; 
+}
 
-/* LOGIN */
-body:has(#auth-section:not(.hidden)) { background: white; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-body:has(#auth-section:not(.hidden)) .container { box-shadow: none; border: none; }
-body:has(#auth-section:not(.hidden)) .bottom-nav { display: none !important; }
-#auth-section input { border: none; border-bottom: 1px solid #333; border-radius: 0; margin-bottom: 20px; padding-left: 35px; }
+#reader { 
+    width: 100% !important; max-height: 250px; margin: 0 auto 15px auto; 
+    border-radius: 12px; overflow: hidden; display: none; border: 3px solid var(--primary); 
+}
 
-/* NAV INFERIOR */
-.bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 65px; background: white; display: flex; border-top: 1px solid #eee; z-index: 1000; }
-.nav-item { flex: 1; text-decoration: none; color: #757575; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; }
-.nav-item.active { color: var(--primary); }
+/* ============================================================
+   2. ESTILO DA BARRA DE NAVEGAÇÃO INFERIOR
+   ============================================================ */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 65px;
+    background-color: var(--nav-bg);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-top: 1px solid #eee;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    z-index: 1000;
+}
 
-/* BOTÕES E ITENS */
-.btn-primary { background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-.btn-success { background: var(--success); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-.btn-danger { background: #fee2e2; color: var(--danger); border: 1px solid var(--danger); border-radius: 8px; cursor: pointer; }
-.btn-excel { background: var(--excel); color: white; border: none; border-radius: 8px; font-weight: bold; margin-top: 10px; }
-.item { background: #fff; border-left: 6px solid var(--success); padding: 12px; margin-bottom: 10px; border-radius: 10px; display: flex; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-#reader { width: 100% !important; border-radius: 12px; display: none; border: 3px solid var(--primary); margin-bottom: 15px; }
+.nav-item {
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--nav-text);
+    font-size: 10px;
+    flex: 1;
+}
+
+.nav-item.active {
+    color: var(--primary);
+}
+
+.nav-icon {
+    font-size: 22px;
+    margin-bottom: 2px;
+}
+
+.profile-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.badge {
+    position: absolute;
+    top: -4px;
+    right: -6px;
+    background-color: var(--primary);
+    color: white;
+    font-size: 9px;
+    font-weight: bold;
+    padding: 1px 5px;
+    border-radius: 10px;
+    border: 2px solid white;
+}
+
+/* Esconder barra na tela de login */
+body:has(#auth-section:not(.hidden)) .bottom-nav {
+    display: none;
+}
+
+/* ============================================================
+   3. ESTILO EXCLUSIVO DA TELA DE LOGIN (MANTIDO)
+   ============================================================ */
+body:has(#auth-section:not(.hidden)) {
+    background-color: #ffffff !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+body:has(#auth-section:not(.hidden)) .container {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+}
+
+#auth-section input:-webkit-autofill {
+    -webkit-text-fill-color: #333 !important;
+    -webkit-box-shadow: 0 0 0px 1000px white inset !important;
+}
+
+#auth-section input {
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 1px solid #333 !important;
+    border-radius: 0 !important;
+    padding-left: 35px !important;
+    margin-bottom: 20px !important;
+}
+
+#auth-section #email {
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="black" viewBox="0 0 16 16"><path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4Zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1H2Z"/></svg>') no-repeat left center !important;
+}
+
+#auth-section #senha {
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="black" viewBox="0 0 16 16"><path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/></svg>') no-repeat left center !important;
+}
+
+#auth-section #btn-login {
+    background-color: #333 !important;
+    color: white !important;
+    border-radius: 8px !important;
+    text-transform: uppercase;
+    font-weight: bold !important;
+    margin-top: 20px !important;
+}
