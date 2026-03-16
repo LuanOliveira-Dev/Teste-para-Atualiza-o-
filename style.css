@@ -1,65 +1,52 @@
-/* Espaçamento para a barra inferior */
+:root {
+    --primary: #007bff;
+    --success: #28a745;
+    --danger: #dc3545;
+    --excel: #1d6f42;
+    --cloud: #6366f1;
+}
+
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f2f5; padding: 15px; margin: 0; color: #333; }
 body.has-nav { padding-bottom: 80px; }
 
-/* Barra Superior Preta (Estilo Imagem enviada) */
+.container { max-width: 500px; margin: 5px auto; background: white; padding: 20px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+.hidden { display: none !important; }
+
+/* BARRA PRETA SETORES */
 .top-bar-black {
-    background: #000;
-    color: #fff;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 15px;
-    margin: -20px -20px 20px -20px;
+    background: #000; color: #fff; display: flex; justify-content: space-between;
+    align-items: center; padding: 15px; margin: -20px -20px 20px -20px;
     border-radius: 16px 16px 0 0;
 }
-
-.top-title { font-weight: bold; font-size: 14px; letter-spacing: 1px; }
 .btn-icon-top { background: none; border: none; color: white; font-size: 20px; cursor: pointer; padding: 5px; }
 
-/* Lista de Setores */
-.setor-card {
-    background: #fff;
-    border-bottom: 1px solid #eee;
-    padding: 15px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.setor-card span { font-weight: 500; color: #555; text-transform: uppercase; font-size: 13px; }
-
-/* Modal de Cadastro */
+/* MODAL */
 .modal {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.7);
-    display: flex; align-items: center; justify-content: center;
-    z-index: 9999;
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.8); display: flex; align-items: center;
+    justify-content: center; z-index: 9999;
 }
+.modal-content { background: white; padding: 25px; border-radius: 15px; width: 85%; max-width: 350px; text-align: center; }
+.modal-buttons { display: flex; gap: 10px; margin-top: 15px; }
 
-.modal-content {
-    background: white;
-    padding: 25px;
-    border-radius: 15px;
-    width: 85%;
-    max-width: 350px;
-    text-align: center;
-}
+/* LISTA DE SETORES */
+.setor-card { background: #fff; border-bottom: 1px solid #eee; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
 
-.modal-buttons { display: flex; gap: 10px; margin-top: 20px; }
+/* LOGIN */
+body:has(#auth-section:not(.hidden)) { background: white; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+body:has(#auth-section:not(.hidden)) .container { box-shadow: none; border: none; }
+body:has(#auth-section:not(.hidden)) .bottom-nav { display: none !important; }
+#auth-section input { border: none; border-bottom: 1px solid #333; border-radius: 0; margin-bottom: 20px; padding-left: 35px; }
 
-/* Barra Inferior */
-.bottom-nav {
-    position: fixed; bottom: 0; left: 0; width: 100%; height: 65px;
-    background: #fff; display: flex; justify-content: space-around;
-    align-items: center; border-top: 1px solid #eee; z-index: 1000;
-}
-
-.nav-item { text-decoration: none; color: #757575; display: flex; flex-direction: column; align-items: center; flex: 1; font-size: 10px; }
+/* NAV INFERIOR */
+.bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 65px; background: white; display: flex; border-top: 1px solid #eee; z-index: 1000; }
+.nav-item { flex: 1; text-decoration: none; color: #757575; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; }
 .nav-item.active { color: var(--primary); }
-.nav-icon { font-size: 22px; margin-bottom: 2px; }
-.badge { position: absolute; top: -5px; right: -8px; background: var(--primary); color: white; font-size: 9px; padding: 2px 5px; border-radius: 10px; border: 2px solid white; }
-.profile-wrapper { position: relative; }
 
-/* Esconder no Login */
-body:has(#auth-section:not(.hidden)) .bottom-nav { display: none; }
+/* BOTÕES E ITENS */
+.btn-primary { background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+.btn-success { background: var(--success); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+.btn-danger { background: #fee2e2; color: var(--danger); border: 1px solid var(--danger); border-radius: 8px; cursor: pointer; }
+.btn-excel { background: var(--excel); color: white; border: none; border-radius: 8px; font-weight: bold; margin-top: 10px; }
+.item { background: #fff; border-left: 6px solid var(--success); padding: 12px; margin-bottom: 10px; border-radius: 10px; display: flex; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+#reader { width: 100% !important; border-radius: 12px; display: none; border: 3px solid var(--primary); margin-bottom: 15px; }

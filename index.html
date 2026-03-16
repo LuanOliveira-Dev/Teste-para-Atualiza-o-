@@ -24,7 +24,8 @@
         <input type="email" id="email" placeholder="E-mail">
         <input type="password" id="senha" placeholder="Senha">
         <button id="btn-login" class="btn-primary">ENTRAR</button>
-        <button id="btn-toggle-reg" style="background:none; border:none; color:var(--primary); cursor:pointer; font-size:14px;">Não tenho conta? Cadastrar</button>
+        <button id="btn-toggle-reg" style="background:none; border:none; color:#333; cursor:pointer; font-size:14px;">Não tenho conta? Cadastrar</button>
+        <button id="btn-cadastrar" class="btn-success hidden">FINALIZAR CADASTRO</button>
     </div>
 
     <div id="app-section" class="hidden">
@@ -43,6 +44,7 @@
             </div>
             
             <button class="btn-primary" id="btnScan">📷 ESCANEAR CÓDIGO</button>
+            <button class="btn-stop-cam" id="btnStopCam">❌ CANCELAR LEITURA</button>
             <div id="reader"></div>
 
             <form id="formEstoque">
@@ -54,7 +56,15 @@
                 </div>
                 <button type="submit" class="btn-success">SALVAR COLETA</button>
             </form>
-            <div id="listaProdutos" style="margin-top:20px;"></div>
+
+            <button id="btnExportar" class="btn-excel">📊 EXPORTAR PARA EXCEL (.XLSX)</button>
+            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h3 style="font-size: 16px; margin: 0;">📦 Itens (<span id="countItens">0</span>)</h3>
+                <button id="btnLimparTudo" class="btn-danger" style="width: auto; padding: 5px 15px; font-size: 11px;">🗑️ LIMPAR TUDO</button>
+            </div>
+            <div id="listaProdutos">Carregando...</div>
         </div>
 
         <div id="tab-setores" class="hidden">
@@ -66,8 +76,7 @@
                     <button class="btn-icon-top" id="btn-clear-all-setores">🗑️</button>
                 </div>
             </div>
-            <div id="lista-setores-render" class="setores-list">
-                </div>
+            <div id="lista-setores-render" class="setores-list"></div>
         </div>
     </div>
 </div>
@@ -89,27 +98,12 @@
         <span class="nav-label">Início</span>
     </a>
     <a href="#" class="nav-item" id="nav-link-setores">
-        <span class="nav-icon">
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-                <path d="M20 4H4v2h16V4zm1 10V8l-1-1H4L3 8v6c0 1.1.9 2 2 2h10v-2H5v-4h14v4h-2v2h2c1.1 0 2-.9 2-2zM9 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM7 14h10V7H7v7z"/>
-            </svg>
-        </span>
+        <span class="nav-icon">📂</span>
         <span class="nav-label">Setores</span>
     </a>
     <a href="#" class="nav-item">
-        <span class="nav-icon">❤️</span>
-        <span class="nav-label">Favoritos</span>
-    </a>
-    <a href="#" class="nav-item">
-        <span class="nav-icon">🛍️</span>
-        <span class="nav-label">Sacola</span>
-    </a>
-    <a href="#" class="nav-item">
-        <div class="profile-wrapper">
-            <span class="nav-icon">👤</span>
-            <span class="badge">7</span>
-        </div>
-        <span class="nav-label">Sua conta</span>
+        <span class="nav-icon">👤</span>
+        <span class="nav-label">Conta</span>
     </a>
 </nav>
 
