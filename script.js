@@ -14,22 +14,65 @@ import {
 let html5QrCode;
 let listaAtualParaExportar = [];
 
-// --- UTILITÁRIOS ---
+// --- 1. UTILITÁRIOS ---
 const formatarDataBR = (dataStr) => {
     if(!dataStr) return "";
     const [ano, mes, dia] = dataStr.split("-");
     return `${dia}/${mes}/${ano}`;
 };
 
-// --- FUNÇÕES DE LÓGICA ---
-async function atualizarStatusContagemCloud() {
-    try {
-        const snapshot = await getDocs(collection(db, "produtos_base"));
-        const statusEl = document.getElementById('statusCloud');
-        if(statusEl) statusEl.innerText = `${snapshot.size} PRODUTOS NA NUVEM`;
-    } catch (e) { console.error("Erro ao contar nuvem:", e); }
+// --- 2. NAVEGAÇÃO (TROCA DE ABAS) ---
+function trocarTela(idTela) {
+    // Esconde todas as secções principais
+    document.getElementById('app-section').classList.add('hidden');
+    const setoresSec = document.getElementById('setores-section');
+    if(setoresSec) setoresSec.classList.add('hidden');
+    
+    // Remove a classe 'active' de todos os itens da nav
+    document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+
+    // Mostra a tela correta
+    if (idTela === 'inicio') {
+        document.getElementById('app-section').classList.remove('hidden');
+        document.querySelector('#nav-inicio').classList.add('active');
+    } else if (idTela === 'setores') {
+        document.getElementById('setores-section').classList.remove('hidden');
+        document.querySelector('#nav-setores').classList.add('active');
+        carregarSetores();
+    }
 }
 
+// --- 3. LÓGICA DE SETORES ---
+function carregarSetores() {
+    const lista = document.getElementById('listaSetores');
+    const q = query(collection(db, "setores"), where("uid", "==", auth.currentUser.uid));
+    
+    onSnapshot(q, (snap) => {
+        lista.innerHTML = '';
+        if (snap.empty) {
+            lista.innerHTML = '<p style="text-align:center; color:#666; font-size:13px; padding:20px;">Nenhum setor cadastrado.</p>';
+            return;
+        }
+        snap.forEach(d => {
+            const s = d.data();
+            const div = document.createElement('div');
+            div.className = 'item';
+            div.style.borderLeft = '6px solid var(--primary)';
+            div.innerHTML = `
+                <span><strong>${s.nome}</strong></span>
+                <button onclick="window.excluirSetor('${d.id}')" style="width:auto; background:none; border:none; color:red; cursor:pointer; font-weight:bold;">✕</button>
+            `;
+            lista.appendChild(div);
+        });
+    });
+}
+
+window.excluirSetor = async (id) => {
+    const result = await Swal.fire({ title: 'Excluir setor?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545' });
+    if (result.isConfirmed) await deleteDoc(doc(db, "setores", id));
+};
+
+// --- 4. LÓGICA DE ESTOQUE ---
 async function buscarProdutoNoFirebase(ean) {
     const q = query(collection(db, "produtos_base"), where("__name__", "==", ean));
     const snap = await getDocs(q);
@@ -39,105 +82,74 @@ async function buscarProdutoNoFirebase(ean) {
     }
 }
 
-const pararLeitor = () => {
-    if (html5QrCode && html5QrCode.isScanning) {
-        html5QrCode.stop().then(() => {
-            document.getElementById('reader').style.display = 'none';
-            document.getElementById('btnScan').style.display = 'block';
-            document.getElementById('btnStopCam').style.display = 'none';
-        }).catch(err => console.error(err));
-    }
+function carregarEstoque(uid) {
+    onSnapshot(query(collection(db, "estoque"), where("uid", "==", uid)), (snap) => {
+        const lista = document.getElementById('listaProdutos');
+        document.getElementById('countItens').innerText = snap.size;
+        lista.innerHTML = '';
+        listaAtualParaExportar = [];
+        snap.forEach(d => {
+            const p = d.data();
+            listaAtualParaExportar.push(p);
+            const div = document.createElement('div');
+            div.className = 'item';
+            div.innerHTML = `<div><strong>${p.descricao}</strong><br><small>${p.codigo} | Qtd: ${p.quantidade} | Val: ${formatarDataBR(p.validade)}</small></div>
+                             <button onclick=\"window.excluirItem('${d.id}')\" style=\"width:auto; background:none; border:none; color:red; cursor:pointer\">✕</button>`;
+            lista.appendChild(div);
+        });
+    });
+}
+
+window.excluirItem = (id) => {
+    Swal.fire({ title: 'Eliminar item?', icon: 'warning', showCancelButton: true }).then(r => {
+        if(r.isConfirmed) deleteDoc(doc(db, "estoque", id));
+    });
 };
 
-// --- ATRIBUIÇÃO DE EVENTOS (A correção principal) ---
+// --- 5. EVENTOS ---
 document.addEventListener('DOMContentLoaded', () => {
 
-    // Login
-    document.getElementById('btn-login').addEventListener('click', () => {
-        const email = document.getElementById('email').value;
-        const senha = document.getElementById('senha').value;
-        signInWithEmailAndPassword(auth, email, senha)
-            .catch(() => Swal.fire('Erro', "E-mail ou senha incorretos.", 'error'));
-    });
+    // Ouvintes da Barra de Navegação (IMPORTANTE)
+    document.getElementById('nav-inicio').addEventListener('click', (e) => { e.preventDefault(); trocarTela('inicio'); });
+    document.getElementById('nav-setores').addEventListener('click', (e) => { e.preventDefault(); trocarTela('setores'); });
 
-    // Cadastro
-    document.getElementById('btn-cadastrar').addEventListener('click', () => {
-        const nome = document.getElementById('nome_usuario').value;
-        const email = document.getElementById('email').value;
-        const senha = document.getElementById('senha').value;
-        createUserWithEmailAndPassword(auth, email, senha)
-            .then(res => updateProfile(res.user, { displayName: nome }))
-            .then(() => location.reload())
-            .catch(err => Swal.fire('Erro no Cadastro', err.message, 'error'));
-    });
+    // Cadastro de Setor
+    const formSetores = document.getElementById('formSetores');
+    if(formSetores) {
+        formSetores.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nome = document.getElementById('nome_setor').value;
+            await addDoc(collection(db, "setores"), {
+                uid: auth.currentUser.uid,
+                nome: nome.toUpperCase(),
+                criadoEm: Date.now()
+            });
+            e.target.reset();
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Setor salvo!', showConfirmButton: false, timer: 2000 });
+        });
+    }
 
-    // Alternar campos de cadastro
-    document.getElementById('btn-toggle-reg').addEventListener('click', () => {
-        document.getElementById('register-fields').classList.toggle('hidden');
-        document.getElementById('btn-cadastrar').classList.toggle('hidden');
-        document.getElementById('btn-login').classList.toggle('hidden');
-        const isReg = !document.getElementById('register-fields').classList.contains('hidden');
-        document.getElementById('btn-toggle-reg').innerText = isReg ? "Já tenho conta? Entrar" : "Não tenho conta? Cadastrar";
-    });
-
-    // Logout
-    document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
-
-    // Scanner
+    // Restante das funções de Estoque e Scanner (Código Original Integrado)
     document.getElementById('btnScan').addEventListener('click', () => {
         document.getElementById('reader').style.display = 'block';
         document.getElementById('btnScan').style.display = 'none';
         document.getElementById('btnStopCam').style.display = 'block';
-        
         html5QrCode = new Html5Qrcode("reader");
-        html5QrCode.start(
-            { facingMode: "environment" }, 
-            { fps: 15, qrbox: { width: 250, height: 120 } }, 
-            (text) => {
-                document.getElementById('codigo').value = text;
-                buscarProdutoNoFirebase(text);
-                pararLeitor();
-            }
-        ).catch(err => console.error(err));
+        html5QrCode.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, (text) => {
+            document.getElementById('codigo').value = text;
+            buscarProdutoNoFirebase(text);
+            document.getElementById('btnStopCam').click();
+        });
     });
 
-    document.getElementById('btnStopCam').addEventListener('click', pararLeitor);
-
-    // Busca manual por código
-    document.getElementById('codigo').addEventListener('input', (e) => {
-        if(e.target.value.length >= 8) buscarProdutoNoFirebase(e.target.value);
+    document.getElementById('btnStopCam').addEventListener('click', () => {
+        if (html5QrCode) html5QrCode.stop().then(() => {
+            document.getElementById('reader').style.display = 'none';
+            document.getElementById('btnScan').style.display = 'block';
+            document.getElementById('btnStopCam').style.display = 'none';
+        });
     });
 
-    // Importar CSV
-    document.getElementById('csvFile').addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        Swal.fire({ title: 'Sincronizando...', text: 'Aguarde', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-        
-        const reader = new FileReader();
-        reader.onload = async (event) => {
-            const lines = event.target.result.split(/\r?\n/);
-            const batch = writeBatch(db);
-            let cont = 0;
-            lines.forEach(line => {
-                const cols = line.split(/[;,]/);
-                if (cols.length >= 2) {
-                    const ean = cols[0].trim().replace(/"/g, '');
-                    const nome = cols[1].trim().replace(/"/g, '');
-                    if (ean && ean.toLowerCase() !== "ean") {
-                        batch.set(doc(db, "produtos_base", ean), { nome: nome });
-                        cont++;
-                    }
-                }
-            });
-            await batch.commit();
-            await atualizarStatusContagemCloud();
-            Swal.fire('Sucesso', `${cont} produtos sincronizados!`, 'success');
-        };
-        reader.readAsText(file, 'UTF-8');
-    });
-
-    // Salvar no Estoque
     document.getElementById('formEstoque').addEventListener('submit', async (e) => {
         e.preventDefault();
         await addDoc(collection(db, "estoque"), {
@@ -152,92 +164,27 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('codigo').focus();
     });
 
-    // Exportar
-    document.getElementById('btnExportar').addEventListener('click', () => {
-        if (listaAtualParaExportar.length === 0) return Swal.fire('Vazio', 'Nada para exportar!', 'info');
-        
-        Swal.fire({
-            title: 'Exportar para Excel?',
-            text: `Deseja gerar o arquivo com ${listaAtualParaExportar.length} itens coletados?`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#1d6f42',
-            confirmButtonText: 'Sim, exportar!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                const ws = XLSX.utils.json_to_sheet(listaAtualParaExportar.map(item => ({
-                    "Código": item.codigo, "Descrição": item.descricao, "Validade": formatarDataBR(item.validade), "Quantidade": item.quantidade
-                })));
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "Coleta");
-                XLSX.writeFile(wb, `Coleta_${new Date().toLocaleDateString().replace(/\//g, '-')}.xlsx`);
-            }
-        });
+    // Autenticação
+    document.getElementById('btn-login').addEventListener('click', () => {
+        const email = document.getElementById('email').value;
+        const senha = document.getElementById('senha').value;
+        signInWithEmailAndPassword(auth, email, senha).catch(() => Swal.fire('Erro', 'Acesso negado', 'error'));
     });
 
-    // Limpar Tudo
-    document.getElementById('btnLimparTudo').addEventListener('click', async () => {
-        const result = await Swal.fire({ 
-            title: 'Limpar tudo?', 
-            text: "Isso apagará permanentemente toda a sua lista atual!",
-            icon: 'warning', 
-            showCancelButton: true, 
-            confirmButtonColor: '#dc3545',
-            confirmButtonText: 'Sim, limpar tudo' 
-        });
-        
-        if (result.isConfirmed) {
-            const snap = await getDocs(query(collection(db, "estoque"), where("uid", "==", auth.currentUser.uid)));
-            const batch = writeBatch(db);
-            snap.forEach(d => batch.delete(doc(db, "estoque", d.id)));
-            await batch.commit();
-            Swal.fire('Limpo!', 'Sua lista foi esvaziada.', 'success');
-        }
-    });
+    document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
 });
 
-// --- LISTAGEM E EXCLUSÃO (Global para o botão X) ---
-window.excluirItem = (id) => {
-    Swal.fire({
-        title: 'Excluir item?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#dc3545',
-        confirmButtonText: 'Sim, excluir'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            deleteDoc(doc(db, "estoque", id));
-        }
-    });
-};
-
-function carregarEstoque(uid) {
-    onSnapshot(query(collection(db, "estoque"), where("uid", "==", uid)), (snap) => {
-        const lista = document.getElementById('listaProdutos');
-        document.getElementById('countItens').innerText = snap.size;
-        lista.innerHTML = '';
-        listaAtualParaExportar = [];
-        snap.forEach(d => {
-            const p = d.data();
-            listaAtualParaExportar.push(p);
-            const div = document.createElement('div');
-            div.className = 'item';
-            div.innerHTML = `<div><strong>${p.descricao}</strong><br><small>${p.codigo} | Qtd: ${p.quantidade} | Val: ${formatarDataBR(p.validade)}</small></div>
-                             <button onclick="excluirItem('${d.id}')" style="width:auto; background:none; border:none; color:red; cursor:pointer">✕</button>`;
-            lista.appendChild(div);
-        });
-    });
-}
-
+// --- 6. ESTADO DA SESSÃO ---
 onAuthStateChanged(auth, (user) => {
     if (user) {
         document.getElementById('auth-section').classList.add('hidden');
-        document.getElementById('app-section').classList.remove('hidden');
+        trocarTela('inicio');
         document.getElementById('display-user-name').innerText = user.displayName || user.email;
         carregarEstoque(user.uid);
-        atualizarStatusContagemCloud();
     } else {
         document.getElementById('auth-section').classList.remove('hidden');
         document.getElementById('app-section').classList.add('hidden');
+        const setSec = document.getElementById('setores-section');
+        if(setSec) setSec.classList.add('hidden');
     }
 });

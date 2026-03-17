@@ -28,7 +28,7 @@
         <button id="btn-cadastrar" class="btn-success hidden">FINALIZAR CADASTRO</button>
     </div>
 
-    <div id="app-section" class="hidden">
+    <div id="app-section" class="hidden secao-tela">
         <div class="user-info">
             <span>👋 Olá, <span id="display-user-name"></span></span>
             <button id="btn-logout" style="width:auto; padding: 4px 8px; font-size: 11px;">Sair</button>
@@ -71,26 +71,42 @@
         
         <div id="listaProdutos">Carregando...</div>
     </div>
+
+    <div id="setores-section" class="hidden secao-tela">
+        <h3 style="margin-top: 0;">📂 Gerenciar Setores</h3>
+        <p style="font-size: 12px; color: #666;">Cadastre seus departamentos manualmente abaixo:</p>
+        
+        <form id="formSetores" style="margin-bottom: 20px;">
+            <input type="text" id="nome_setor" placeholder="Nome do Setor (ex: Padaria)" required>
+            <button type="submit" class="btn-primary">ADICIONAR SETOR</button>
+        </form>
+
+        <div id="listaSetores">Carregando setores...</div>
+    </div>
+
+    <div id="favoritos-section" class="hidden secao-tela"><h3>❤️ Favoritos</h3></div>
+    <div id="sacola-section" class="hidden secao-tela"><h3>🛍️ Sacola</h3></div>
+    <div id="conta-section" class="hidden secao-tela"><h3>👤 Minha Conta</h3></div>
 </div>
 
 <nav class="bottom-nav">
-    <a href="#" class="nav-item active">
+    <a href="#" class="nav-item active" id="nav-inicio">
         <span class="nav-icon">🏠</span>
         <span class="nav-label">Início</span>
     </a>
-    <a href="#" class="nav-item">
+    <a href="#" class="nav-item" id="nav-setores">
         <span class="nav-icon">📂</span>
         <span class="nav-label">Departamentos</span>
     </a>
-    <a href="#" class="nav-item">
+    <a href="#" class="nav-item" id="nav-favoritos">
         <span class="nav-icon">❤️</span>
         <span class="nav-label">Favoritos</span>
     </a>
-    <a href="#" class="nav-item">
+    <a href="#" class="nav-item" id="nav-sacola">
         <span class="nav-icon">🛍️</span>
         <span class="nav-label">Sacola</span>
     </a>
-    <a href="#" class="nav-item">
+    <a href="#" class="nav-item" id="nav-conta">
         <div class="profile-wrapper">
             <span class="nav-icon">👤</span>
             <span class="badge">7</span>
